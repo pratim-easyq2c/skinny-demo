@@ -1,0 +1,536 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Skinny NZ — Product Demo Requirements | Subscriber360 + Billing360</title>
+  <meta name="description" content="Internal brief from EasyQ2C to OneBill demo engineering: configure a Skinny-like NZ MVNO catalog on Subscriber360 and Billing360 as a Zuora replacement." />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&amp;family=Inter+Tight:wght@600;700;800&amp;display=swap" rel="stylesheet" />
+  <style>
+    :root {
+      --bg: #f4f5f7;
+      --surface: #fff;
+      --ink: #0a2540;
+      --text: #2a3441;
+      --muted: #667085;
+      --accent: #f26522;
+      --accent-dark: #d45516;
+      --accent-soft: #fff0e7;
+      --navy: #0a2540;
+      --navy-2: #123a5a;
+      --border: #e4e7ec;
+      --ok: #027a48;
+    }
+    * { box-sizing: border-box; }
+    html { scroll-behavior: smooth; }
+    body {
+      margin: 0;
+      font-family: Inter, "Segoe UI", system-ui, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      font-size: 15px;
+      line-height: 1.55;
+    }
+    h1, h2, h3 {
+      font-family: "Inter Tight", Inter, sans-serif;
+      color: var(--ink);
+      letter-spacing: -0.02em;
+      margin: 0;
+    }
+    a { color: var(--accent-dark); }
+    code {
+      font-family: ui-monospace, "Cascadia Code", Consolas, monospace;
+      font-size: 0.84em;
+      background: #f2f4f7;
+      padding: 0.08em 0.35em;
+      border-radius: 3px;
+    }
+
+    .cover {
+      background: linear-gradient(160deg, var(--navy) 0%, var(--navy-2) 100%);
+      color: #fff;
+      padding: 2.4rem 2rem 2rem;
+    }
+    .cover-inner { max-width: 960px; margin: 0 auto; }
+    .doc-type {
+      font-size: 0.72rem;
+      letter-spacing: 0.14em;
+      text-transform: uppercase;
+      color: var(--accent);
+      font-weight: 700;
+    }
+    .cover h1 {
+      color: #fff;
+      font-size: 1.7rem;
+      font-weight: 800;
+      margin: 0.45rem 0 0.55rem;
+      line-height: 1.2;
+      max-width: 22ch;
+    }
+    .cover .subtitle {
+      color: #d6dee8;
+      max-width: 62ch;
+      margin: 0 0 1.4rem;
+      font-size: 0.95rem;
+    }
+    .meta-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 0.55rem;
+    }
+    .meta-card {
+      background: rgba(255,255,255,0.06);
+      border-left: 3px solid var(--accent);
+      padding: 0.55rem 0.75rem;
+      font-size: 0.82rem;
+      line-height: 1.4;
+    }
+    .meta-card strong {
+      display: block;
+      font-size: 0.62rem;
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+      color: var(--accent);
+      margin-bottom: 0.15rem;
+    }
+
+    .toc {
+      background: var(--surface);
+      border-bottom: 1px solid var(--border);
+      position: sticky;
+      top: 0;
+      z-index: 5;
+    }
+    .toc nav {
+      max-width: 960px;
+      margin: 0 auto;
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.15rem 1rem;
+      padding: 0.7rem 2rem;
+    }
+    .toc a {
+      color: var(--ink);
+      text-decoration: none;
+      font-size: 0.82rem;
+      font-weight: 600;
+    }
+    .toc a:hover { color: var(--accent-dark); }
+
+    main {
+      max-width: 960px;
+      margin: 0 auto;
+      padding: 1.5rem 2rem 3rem;
+    }
+    section { margin: 0 0 2rem; }
+    h2 {
+      font-size: 1.28rem;
+      border-bottom: 2px solid var(--accent);
+      display: inline-block;
+      padding-bottom: 0.25rem;
+      margin-bottom: 0.45rem;
+    }
+    .lead { color: var(--muted); margin: 0 0 1rem; max-width: 68ch; }
+
+    .stat-row {
+      display: grid;
+      grid-template-columns: repeat(5, 1fr);
+      gap: 0.65rem;
+      margin: 0 0 1.15rem;
+    }
+    .stat {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-top: 3px solid var(--accent);
+      border-radius: 4px;
+      padding: 0.75rem 0.5rem;
+      text-align: center;
+    }
+    .stat .num { font-family: "Inter Tight", Inter, sans-serif; font-size: 1.35rem; font-weight: 800; color: var(--accent); }
+    .stat .lbl { font-size: 0.68rem; color: var(--muted); text-transform: uppercase; letter-spacing: 0.04em; }
+
+    .callout {
+      border-left: 4px solid var(--accent);
+      background: var(--accent-soft);
+      padding: 0.85rem 1rem;
+      border-radius: 0 4px 4px 0;
+      margin: 0 0 1rem;
+      font-size: 0.92rem;
+    }
+    .callout strong { color: var(--accent-dark); }
+
+    .card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 4px;
+      padding: 1rem 1.1rem;
+      margin-bottom: 0.85rem;
+    }
+    .card h3 { font-size: 1rem; color: var(--accent-dark); margin-bottom: 0.5rem; }
+
+    .split {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 0.85rem;
+    }
+    .split ul { margin: 0; padding-left: 1.15rem; }
+    .split li { margin: 0.25rem 0; }
+
+    table.data {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 0.82rem;
+      background: var(--surface);
+      margin: 0 0 0.85rem;
+    }
+    table.data th, table.data td {
+      padding: 0.45rem 0.6rem;
+      text-align: left;
+      border-bottom: 1px solid var(--border);
+      vertical-align: top;
+    }
+    table.data th {
+      background: #fafbfc;
+      font-weight: 700;
+      color: var(--muted);
+      font-size: 0.7rem;
+      text-transform: uppercase;
+      letter-spacing: 0.03em;
+      border-bottom: 2px solid var(--accent);
+    }
+    table.data tr:hover td { background: #fafbfc; }
+    .price { font-variant-numeric: tabular-nums; white-space: nowrap; }
+
+    .tag {
+      display: inline-block;
+      padding: 0.08rem 0.4rem;
+      border-radius: 2px;
+      font-size: 0.68rem;
+      font-weight: 700;
+      background: var(--accent-soft);
+      color: var(--accent-dark);
+    }
+    .tag.mute { background: #f2f4f7; color: #344054; }
+
+    ol.steps { margin: 0; padding-left: 1.2rem; }
+    ol.steps li { margin: 0.28rem 0; }
+
+    ul.check { list-style: none; padding: 0; margin: 0; }
+    ul.check li {
+      padding: 0.4rem 0 0.4rem 1.55rem;
+      position: relative;
+      border-bottom: 1px solid var(--border);
+      font-size: 0.9rem;
+    }
+    ul.check li::before { content: "☐"; position: absolute; left: 0; color: var(--accent); font-weight: 700; }
+
+    .arch {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      gap: 0.45rem;
+      justify-content: center;
+      padding: 0.9rem;
+      background: var(--accent-soft);
+      border-radius: 4px;
+      margin: 0.75rem 0 0;
+      font-size: 0.88rem;
+    }
+    .arch-box {
+      background: #fff;
+      border: 2px solid var(--accent);
+      border-radius: 4px;
+      padding: 0.5rem 0.85rem;
+      text-align: center;
+      min-width: 130px;
+    }
+    .arch-box small { display: block; color: var(--muted); font-size: 0.72rem; }
+    .arch-arrow { color: var(--accent); font-weight: 800; }
+
+    footer {
+      background: var(--navy);
+      color: #9aa8b8;
+      padding: 1.1rem 2rem;
+      font-size: 0.75rem;
+      text-align: center;
+    }
+    footer a { color: var(--accent); }
+
+    @media (max-width: 800px) {
+      .meta-grid, .stat-row, .split { grid-template-columns: 1fr 1fr; }
+      .stat-row { grid-template-columns: 1fr 1fr; }
+      .cover h1 { max-width: none; font-size: 1.45rem; }
+      main, .cover, .toc nav, footer { padding-left: 1.1rem; padding-right: 1.1rem; }
+    }
+    @media print {
+      .toc { position: static; }
+      .cover { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+    }
+  </style>
+</head>
+<body>
+  <header class="cover">
+    <div class="cover-inner">
+      <div class="doc-type">Product demo requirements · internal</div>
+      <h1>Skinny NZ — Subscriber360 + Billing360</h1>
+      <p class="subtitle">From EasyQ2C to OneBill demo engineering. Configure a Zuora-replacement tenant that looks like Skinny’s public MVNO catalog — not a generic SaaS billing demo.</p>
+      <div class="meta-grid">
+        <div class="meta-card"><strong>From</strong> EasyQ2C — Product / GTM</div>
+        <div class="meta-card"><strong>To</strong> OneBill demo engineering</div>
+        <div class="meta-card"><strong>Account</strong> Skinny · Spark NZ value MVNO</div>
+        <div class="meta-card"><strong>Incumbent</strong> Zuora (confirmed)</div>
+        <div class="meta-card"><strong>Version</strong> 1.0 · 5 Oct 2026</div>
+        <div class="meta-card"><strong>Meeting</strong> Week of 12 Oct 2026</div>
+      </div>
+    </div>
+  </header>
+
+  <div class="toc">
+    <nav>
+      <a href="#ask">1. Ask</a>
+      <a href="#env">2. Environment</a>
+      <a href="#scope">3. Scope</a>
+      <a href="#catalog">4. Catalog</a>
+      <a href="#demo">5. Demo paths</a>
+      <a href="#ready">6. Ready when</a>
+    </nav>
+  </div>
+
+  <main>
+    <section id="ask">
+      <h2>1. Ask</h2>
+      <p class="lead">Skinny is Spark New Zealand’s low-price MVNO. They bill subscriptions on Zuora. Next week’s meeting needs a live OneBill demo of Subscriber360 and Billing360 using Skinny-like offers.</p>
+      <div class="callout">
+        <strong>Success test.</strong> A Skinny person should be able to point at the screen and recognise their 28-day Endless plan, rollover data, $10 mobile-plus-broadband discount, and a 52-week prepaid pack. Do not present this tenant as a live Skinny system.
+      </div>
+      <div class="stat-row">
+        <div class="stat"><div class="num">2</div><div class="lbl">Modules</div></div>
+        <div class="stat"><div class="num">8</div><div class="lbl">28-day plans</div></div>
+        <div class="stat"><div class="num">2</div><div class="lbl">Yearly packs</div></div>
+        <div class="stat"><div class="num">4</div><div class="lbl">Must-show paths</div></div>
+        <div class="stat"><div class="num">NZD</div><div class="lbl">GST 15%</div></div>
+      </div>
+    </section>
+
+    <section id="env">
+      <h2>2. Environment</h2>
+      <p class="lead">OneBill chrome stays OneBill. Catalog names and prices mimic Skinny. No Skinny or Spark logos in the product UI unless we supply approved marks.</p>
+      <table class="data">
+        <thead>
+          <tr><th>Setting</th><th>Value</th></tr>
+        </thead>
+        <tbody>
+          <tr><td>Tenant</td><td><code>Skinny-NZ-Demo</code></td></tr>
+          <tr><td>Modules</td><td>Subscriber360 + Billing360 only</td></tr>
+          <tr><td>Currency / tax</td><td>NZD. Shop prices GST-inclusive. GST visible on the invoice.</td></tr>
+          <tr><td>Locale</td><td>en-NZ · Pacific/Auckland</td></tr>
+          <tr><td>Cycles</td><td>Mobile 7-day and 28-day · Wireless broadband 30-day · Fibre calendar month</td></tr>
+          <tr><td>Payments</td><td>Test card auto-renew labelled “Set &amp; Forget” + a prepaid wallet</td></tr>
+          <tr><td>On camera</td><td>Pricing Studio (catalog) · subscriber workspace (grants, products) · invoice</td></tr>
+        </tbody>
+      </table>
+      <div class="arch">
+        <div class="arch-box">Skinny public catalog<small>plans · grants · household</small></div>
+        <span class="arch-arrow">→</span>
+        <div class="arch-box">Subscriber360<small>lifecycle · accounts</small></div>
+        <span class="arch-arrow">+</span>
+        <div class="arch-box">Billing360<small>rate · invoice · GST · pay</small></div>
+        <span class="arch-arrow">replaces</span>
+        <div class="arch-box">Zuora<small>incumbent billing</small></div>
+      </div>
+    </section>
+
+    <section id="scope">
+      <h2>3. Scope</h2>
+      <div class="split">
+        <div class="card">
+          <h3>Build</h3>
+          <ul>
+            <li>Mobile plans, data add-ons, wireless + fibre broadband</li>
+            <li>Grants, rollover, Endless throttle vs capped hard-stop</li>
+            <li>$10 broadband discount when mobile is $27+</li>
+            <li>12-month vs open term (modem $0 vs $199, $10 shipping)</li>
+            <li>52-week prepaid lock (no plan change)</li>
+            <li>Auto-renew, wallet, payment fail / lapse</li>
+            <li>Synthetic data usage so grants move</li>
+          </ul>
+        </div>
+        <div class="card">
+          <h3>Do not build</h3>
+          <ul>
+            <li>CPQ, Channel360, Workflow360, SelfCare360</li>
+            <li>SIM activation, number port, Spark network / OCS</li>
+            <li>Retail partner commissions</li>
+            <li>Everyday Rewards points</li>
+            <li>Real Skinny customer data</li>
+            <li>One NZ / Matrixx / BRM story</li>
+          </ul>
+        </div>
+      </div>
+    </section>
+
+    <section id="catalog">
+      <h2>4. Catalog to configure</h2>
+      <p class="lead">Prices from skinny.co.nz on 5 Oct 2026, GST-inclusive. Prefer the live Skinny shop if a number has moved. Catalog freeze 48 hours before the meeting.</p>
+
+      <div class="card">
+        <h3>Mobile · 28-day <span class="tag">P0</span></h3>
+        <table class="data">
+          <thead>
+            <tr><th>Code</th><th>Price</th><th>Data</th><th>Voice / SMS NZ+AU</th><th>Notes</th></tr>
+          </thead>
+          <tbody>
+            <tr><td><code>MOB-8-28</code></td><td class="price">$8</td><td>250 MB</td><td>100 min · unlim SMS</td><td>No rollover</td></tr>
+            <tr><td><code>MOB-13-28</code></td><td class="price">$13</td><td>1 GB</td><td>Unlimited</td><td>Rollover data + mins</td></tr>
+            <tr><td><code>MOB-17-28</code></td><td class="price">$17</td><td>2 GB</td><td>Unlimited</td><td>Rollover</td></tr>
+            <tr><td><code>MOB-22-28</code></td><td class="price">$22</td><td>3 GB</td><td>Unlimited</td><td>Rollover</td></tr>
+            <tr><td><code>MOB-27-28</code></td><td class="price">$27</td><td>4 GB</td><td>Unlimited</td><td>Rollover · <strong>broadband $10 eligible</strong></td></tr>
+            <tr><td><code>MOB-40-28</code></td><td class="price">$40</td><td>10 GB then Endless</td><td>Unlimited</td><td>Throttle 1.2 Mbps · hotspot</td></tr>
+            <tr><td><code>MOB-50-28</code></td><td class="price">$50</td><td>40 GB then Endless</td><td>Unlimited</td><td>Throttle 1.2 Mbps</td></tr>
+            <tr><td><code>MOB-75-28</code></td><td class="price">$75</td><td>Endless max-speed</td><td>Unlimited</td><td>Fair use</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <div class="split">
+        <div class="card">
+          <h3>Mobile · 7-day</h3>
+          <table class="data">
+            <thead><tr><th>Code</th><th>Price</th><th>Data</th></tr></thead>
+            <tbody>
+              <tr><td><code>MOB-5-7</code></td><td class="price">$5</td><td>500 MB</td></tr>
+              <tr><td><code>MOB-20-7</code></td><td class="price">$20</td><td>25 GB then Endless</td></tr>
+            </tbody>
+          </table>
+        </div>
+        <div class="card">
+          <h3>Mobile · 52-week prepaid <span class="tag">P0</span></h3>
+          <table class="data">
+            <thead><tr><th>Code</th><th>Upfront</th><th>Every 28 days</th></tr></thead>
+            <tbody>
+              <tr><td><code>MOB-296-52</code></td><td class="price">$296</td><td>Same grants as $27 plan</td></tr>
+              <tr><td><code>MOB-439-52</code></td><td class="price">$439</td><td>Same grants as $40 Endless</td></tr>
+            </tbody>
+          </table>
+          <p style="margin:0.4rem 0 0;font-size:0.85rem;color:var(--muted)">One upfront charge. Refresh grants 13 times. Do not load 52 weeks of GB on day 0. No plan change for 364 days. Cannot pay from Skinny wallet credit.</p>
+        </div>
+      </div>
+
+      <div class="card">
+        <h3>Add-ons <span class="tag">P0 subset</span></h3>
+        <table class="data">
+          <thead>
+            <tr><th>Code</th><th>Price</th><th>Window</th><th>Grant</th></tr>
+          </thead>
+          <tbody>
+            <tr><td><code>ADD-DATA-200-7</code></td><td class="price">$4</td><td>7 days</td><td>200 MB</td></tr>
+            <tr><td><code>ADD-DATA-600-7</code></td><td class="price">$8</td><td>7 days</td><td>600 MB</td></tr>
+            <tr><td><code>ADD-DATA-1GB-28</code></td><td class="price">$10</td><td>28 days</td><td>1 GB</td></tr>
+            <tr><td><code>ADD-DATA-2GB-28</code></td><td class="price">$15</td><td>28 days</td><td>2 GB</td></tr>
+            <tr><td><code>ADD-DATA-5GB-28</code></td><td class="price">$30</td><td>28 days</td><td>5 GB</td></tr>
+          </tbody>
+        </table>
+        <p style="margin:0;font-size:0.85rem;color:var(--muted)">Add-on data does not rollover. On capped plans, buying an add-on unblocks data.</p>
+      </div>
+
+      <div class="card">
+        <h3>Broadband + hardware <span class="tag">P0</span></h3>
+        <table class="data">
+          <thead>
+            <tr><th>Code</th><th>Cadence</th><th>List</th><th>With $27+ mobile</th></tr>
+          </thead>
+          <tbody>
+            <tr><td><code>BB-W60-30</code></td><td>30 days</td><td class="price">$45</td><td class="price">$35</td></tr>
+            <tr><td><code>BB-W300-30</code></td><td>30 days</td><td class="price">$50</td><td class="price">$40</td></tr>
+            <tr><td><code>BB-WUNL-30</code></td><td>30 days</td><td class="price">$55</td><td class="price">$45</td></tr>
+            <tr><td><code>BB-FIB-LO</code></td><td>month</td><td class="price">$93</td><td class="price">$78</td></tr>
+            <tr><td><code>BB-FIB-HI</code></td><td>month</td><td class="price">$108</td><td class="price">$93</td></tr>
+          </tbody>
+        </table>
+        <p style="margin:0;font-size:0.85rem;color:var(--muted)">
+          Rule <code>DISC-HH-10</code>: $10 off broadband when the account holds an active mobile plan priced $27 or above.
+          Modem <code>MDM-TERM</code> $0 on 12-month / <code>MDM-OPEN</code> $199 open term. Shipping <code>SHIP-MDM</code> $10.
+          New wireless on 12-month: first 60 days plan charge $0.
+        </p>
+      </div>
+
+      <div class="card">
+        <h3>Rules that must actually run, not just be described</h3>
+        <ul>
+          <li><strong>Rollover</strong> on $13 / $17 / $22 / $27 included data and minutes only. Rolls if that eligible plan auto-renews. Valid 12 months. Add-ons do not roll.</li>
+          <li><strong>Capped:</strong> data stops at zero until an add-on or a new plan.</li>
+          <li><strong>Endless:</strong> after the max-speed bucket, stay active at <strong>1.2 Mbps</strong> — do not suspend.</li>
+          <li><strong>52-week:</strong> plan change blocked. Wallet credit cannot pay the yearly pack.</li>
+          <li><strong>Lapse:</strong> failed auto-renew → standard rates or suspend. Show it once.</li>
+        </ul>
+      </div>
+    </section>
+
+    <section id="demo">
+      <h2>5. Demo paths</h2>
+      <p class="lead">Four must-show subscribers. Present from Subscriber360; cut to Pricing Studio or the invoice only to prove the rule. Optional extras (family link, 36-month handset) only if time remains.</p>
+
+      <div class="card">
+        <h3>A · Aria Rangi — rollover + add-on</h3>
+        <ol class="steps">
+          <li>Open Aria on <code>MOB-27-28</code>, Set &amp; Forget, invoice $27.</li>
+          <li>Show this cycle’s 4 GB included grant <em>and</em> 1.2 GB rolled from last cycle as separate balances.</li>
+          <li>Usage already at 4.8 GB — included gone, rollover almost gone.</li>
+          <li>Buy <code>ADD-DATA-1GB-28</code> live. Grant goes up / data unblocks.</li>
+        </ol>
+      </div>
+      <div class="card">
+        <h3>B · Ben Chen — Endless throttle</h3>
+        <ol class="steps">
+          <li>Open Ben on <code>MOB-40-28</code>. Max-speed bucket 10 GB, usage 10.4 GB.</li>
+          <li>Subscriber still active. Policy shows 1.2 Mbps — not barred, not suspended.</li>
+          <li>Optional: add 2 GB and show max-speed restored.</li>
+        </ol>
+      </div>
+      <div class="card">
+        <h3>C · Chloe Patel — 52-week lock</h3>
+        <ol class="steps">
+          <li>Chloe bought <code>MOB-296-52</code> 60 days ago. Upfront $296. Grants refreshed twice (28-day cadence).</li>
+          <li>Wallet shows $50 credit that could not have paid this pack.</li>
+          <li>Attempt change to <code>MOB-40-28</code> — blocked.</li>
+        </ol>
+      </div>
+      <div class="card">
+        <h3>D · Dylan Fa'umuina — household bundle</h3>
+        <ol class="steps">
+          <li>Same customer: <code>MOB-27-28</code> + wireless 60 GB on a 12-month term.</li>
+          <li>Broadband period charge is <strong>$35</strong>, not $45.</li>
+          <li>First invoice: modem $0, shipping $10, 60-day wireless promo visible.</li>
+          <li>Rehearsal toggle: remove the $27 mobile and broadband returns to $45.</li>
+        </ol>
+      </div>
+    </section>
+
+    <section id="ready">
+      <h2>6. Ready when</h2>
+      <p class="lead">A presenter who did not configure the tenant can walk paths A–D without opening a generic US catalog.</p>
+      <div class="card">
+        <ul class="check">
+          <li>Aria’s rolled GB is visibly distinct from this cycle’s 4 GB.</li>
+          <li>Ben is throttled, not barred.</li>
+          <li>Chloe cannot change plan.</li>
+          <li>Dylan’s broadband is $35 with $27 mobile, $45 without it.</li>
+          <li>Invoices show NZD and GST.</li>
+          <li>No One NZ, Kordia, Class, or “Sam Smith” names on screen.</li>
+          <li>Snapshot restore exists for the live meeting.</li>
+        </ul>
+      </div>
+      <div class="callout">
+        <strong>Owners.</strong> EasyQ2C owns the meeting narrative. OneBill demo engineering owns tenant, grants, personas, usage inject, and invoice check. Freeze SKUs 48 hours before the meeting unless something is broken.
+      </div>
+    </section>
+  </main>
+
+  <footer>
+    Internal · Skinny NZ demo brief v1.0 · Not a production Skinny system ·
+    Catalog snapshot 5 Oct 2026 from <a href="https://www.skinny.co.nz/">skinny.co.nz</a>
+  </footer>
+</body>
+</html>
